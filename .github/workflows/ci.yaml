@@ -4,12 +4,17 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build-and-push:
     runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITOPS_TOKEN }}
 
       - name: Build Docker image
         run: |
@@ -26,7 +31,6 @@ jobs:
             apps/sample-app/manifests/deployment.yaml
           git config user.email "ci@pi5"
           git config user.name "CI Bot"
-          git remote set-url origin https://x-access-token:${{ secrets.GITOPS_TOKEN }}@github.com/Amankumar2010/gitops-pi5.git
           git add apps/sample-app/manifests/deployment.yaml
           git commit -m "ci: update image to ${{ github.sha }}"
           git push
