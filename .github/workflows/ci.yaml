@@ -1,0 +1,31 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t 192.168.1.11:30500/sample-app:${{ github.sha }} \
+            apps/sample-app/src/
+
+      - name: Push to Zot registry
+        run: |
+          docker push 192.168.1.11:30500/sample-app:${{ github.sha }}
+
+      - name: Update image tag in manifests
+        run: |
+          sed -i "s|image:.*|image: 192.168.1.11:30500/sample-app:${{ github.sha }}|" \
+            apps/sample-app/manifests/deployment.yaml
+          git config user.email "ci@pi5"
+          git config user.name "CI Bot"
+          git add apps/sample-app/manifests/deployment.yaml
+          git commit -m "ci: update image to ${{ github.sha }}"
+          git push
