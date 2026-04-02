@@ -1,0 +1,97 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pistream
+  namespace: pistream
+  labels:
+    app: pistream
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pistream
+  template:
+    metadata:
+      labels:
+        app: pistream
+    spec:
+      containers:
+        - name: pistream
+          # Update this image tag after each build — or automate with image-updater
+          image: ghcr.io/amankumar2010/pistream:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3001
+          env:
+            - name: PORT
+              value: "3001"
+            - name: MOVIES_DIR
+              value: /movies
+            - name: NODE_ENV
+              value: production
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: pistream-secret
+                  key: JWT_SECRET
+          volumeMounts:
+            - name: movies
+              mountPath: /movies
+              readOnly: true
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 15
+            periodSeconds: 30
+      volumes:
+        - name: movies
+          persistentVolumeClaim:
+            claimName: pistream-movies-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pistream
+  namespace: pistream
+spec:
+  selector:
+    app: pistream
+  ports:
+    - port: 80
+      targetPort: 3001
+  type: ClusterIP
+
+---
+# Traefik IngressRoute — exposes pistream.amanops.dev via Cloudflare Tunnel
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pistream
+  namespace: pistream
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`pistream.amanops.dev`)
+      kind: Rule
+      services:
+        - name: pistream
+          port: 80
+  tls:
+    certResolver: cloudflare

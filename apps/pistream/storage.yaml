@@ -1,0 +1,33 @@
+---
+# PersistentVolume — points to the folder on your Pi where movies live
+# Change /mnt/movies to wherever your movie files are on the Pi
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pistream-movies-pv
+  namespace: pistream
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-path
+  hostPath:
+    path: /mnt/movies   # ← CHANGE THIS to your actual movie path on the Pi
+    type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pistream-movies-pvc
+  namespace: pistream
+spec:
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 500Gi
+  volumeName: pistream-movies-pv
