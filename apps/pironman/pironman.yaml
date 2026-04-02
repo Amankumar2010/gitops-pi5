@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pironman-external
+  namespace: default
+spec:
+  type: ExternalName
+  externalName: 100.65.146.110
+  ports:
+    - port: 34001
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pironman
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`pironman.amanops.dev`)
+      kind: Rule
+      services:
+        - name: pironman-external
+          port: 34001
+  tls:
+    certResolver: cloudflare
