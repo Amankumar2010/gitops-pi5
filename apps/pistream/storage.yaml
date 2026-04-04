@@ -1,6 +1,6 @@
 ---
 # PersistentVolume — points to the folder on your Pi where movies live
-# Change /mnt/movies to wherever your movie files are on the Pi
+# Change /home/r1/movies to wherever your movie files are on the Pi
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -14,7 +14,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-path
   hostPath:
-    path: /mnt/movies   # ← CHANGE THIS to your actual movie path on the Pi
+    path: /home/r1/movies   # ← CHANGE THIS to your actual movie path on the Pi
     type: DirectoryOrCreate
 
 ---
