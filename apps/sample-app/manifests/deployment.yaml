@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
       - name: sample-app
-        image: 192.168.1.11:30500/sample-app:ae0e5a9921d3e1a7071125b8629cfc1abea6679a
+        image: 192.168.1.11:30500/sample-app:4afdb7f74af6f9a62a267672fe03ad36dee3ce42
         ports:
         - containerPort: 80
